@@ -91,11 +91,7 @@ describe 'tomcat', :type => :class do
         :osfamily => 'Solaris'
       }
     end
-    it do
-      expect {
-       is_expected.to compile
-      }.to raise_error(Puppet::Error, /Unsupported osfamily/)
-    end
+    it { is_expected.to contain_class("tomcat::params") }
   end
   context "on OSX" do
     let :facts do
