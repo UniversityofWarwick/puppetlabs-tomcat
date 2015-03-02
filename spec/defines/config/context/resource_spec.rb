@@ -35,6 +35,7 @@ describe 'tomcat::config::context::resource', :type => :define do
       }
     end
     expected = <<-eos
+
   <Resource name="jdbc/MainDb"
     driverClass="oracle.jdbc.OracleDriver"
     username="maindbtest"
@@ -46,7 +47,7 @@ describe 'tomcat::config::context::resource', :type => :define do
     it {
       should contain_concat__fragment('/opt/apache-tomcat/test-context-resource-jdbc/MainDb').with({
         :target => '/opt/apache-tomcat/test/conf/context.xml',
-        :content => expected.rstrip.gsub(/  /, "\t")
+        :content => expected.gsub(/  /, "\t")
       })
     }
   end
