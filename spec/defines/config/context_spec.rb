@@ -18,11 +18,11 @@ describe 'tomcat::config::context', :type => :define do
     it {
       should contain_concat__fragment('/opt/apache-tomcat-context-header').with({
         :target => '/opt/apache-tomcat/conf/context.xml',
-        :order  => 0
+        :order  => '0000'
       })
       should contain_concat__fragment('/opt/apache-tomcat-context-footer').with({
         :target => '/opt/apache-tomcat/conf/context.xml',
-        :order  => 1000
+        :order  => '9999'
       })
       should contain_concat('/opt/apache-tomcat/conf/context.xml').with({
         :ensure => 'present'

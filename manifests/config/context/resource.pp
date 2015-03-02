@@ -14,6 +14,6 @@ define tomcat::config::context::resource (
   concat::fragment { "${catalina_base}-context-resource-${real_name}" :
     target  => "${catalina_base}/conf/context.xml",
     content => template("tomcat/resource.xml.erb"),
-    order   => 500,
+    order   => '0500',
   }
 }

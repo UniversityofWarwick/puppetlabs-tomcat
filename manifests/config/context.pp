@@ -10,20 +10,19 @@ define tomcat::config::context(
 
   concat::fragment { "${catalina_base}-context-header" :
     target  => $filename,
-    content => '<?xml version="1.0" encoding="UTF-8"?>\n<Context>',
-    order   => 0,
+    content => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Context>",
+    order   => '0000',
   }
 
   concat::fragment { "${catalina_base}-context-footer" :
     target  => $filename,
     content => '</Context>',
-    order   => 1000,
+    order   => '9999',
   }
 
   concat { $filename : 
     ensure => present,
     backup => false,
-    order  => numeric,
   }
 
 }
