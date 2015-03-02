@@ -7,18 +7,18 @@ describe 'tomcat::config::context::resource', :type => :define do
   let :facts do
     {
       :osfamily => 'Debian',
-      :augeasversion => '1.0.0'
+      :augeasversion => '1.0.0',
+      :concat_basedir => '/tmp/noexist'
     }
   end
   let :title do
     'jdbc/MainDb'
   end
   context 'default' do
-    it { is_expected.to contain_augeas('/opt/apache-tomcat-context-resource-jdbc/MainDb').with(
-      'lens'    => 'Xml.lns',
-      'incl'    => '/opt/apache-tomcat/conf/context.xml',
-      'changes' => 'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/name \'jdbc/MainDb\'',
-    )
+    it {
+      should contain_concat__fragment('/opt/apache-tomcat-context-resource-jdbc/MainDb').with({
+        :target => '/opt/apache-tomcat/conf/context.xml'
+      })
     }
   end
   context 'set all the things' do
@@ -31,51 +31,26 @@ describe 'tomcat::config::context::resource', :type => :define do
           'password'        => 'secret',
           'url'             => 'jdbc:oracle:thin:dbhost:1666:sid',
           'validationQuery' => 'SELECT 1 FROM DUAL',
-        },
-        :attributes_to_remove  => ['testOnBorrow']
+        }
       }
     end
-    it { is_expected.to contain_augeas('/opt/apache-tomcat/test-context-resource-jdbc/MainDb').with(
-      'lens'    => 'Xml.lns',
-      'incl'    => '/opt/apache-tomcat/test/conf/context.xml',
-      'changes' => [
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/name \'jdbc/MainDb\'',
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/driverClass \'oracle.jdbc.OracleDriver\'',
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/username \'maindbtest\'',
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/password \'secret\'',
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/url \'jdbc:oracle:thin:dbhost:1666:sid\'',
-        'set Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/validationQuery \'SELECT 1 FROM DUAL\'',
-        'rm Context/Resource[#attribute/name=\'jdbc/MainDb\']/#attribute/testOnBorrow'
-      ]
-    )
-    }
-  end
-  context 'remove the resource' do
-    let :params do
-      {
-        :resource_ensure => 'false'
-      }
-    end
-    it { is_expected.to contain_augeas('/opt/apache-tomcat-context-resource-jdbc/MainDb').with(
-      'lens'    => 'Xml.lns',
-      'incl'    => '/opt/apache-tomcat/conf/context.xml',
-      'changes' => 'rm Context/Resource[#attribute/name=\'jdbc/MainDb\']',
-    )
+    expected = <<-eos
+  <Resource name="jdbc/MainDb"
+    driverClass="oracle.jdbc.OracleDriver"
+    username="maindbtest"
+    password="secret"
+    url="jdbc:oracle:thin:dbhost:1666:sid"
+    validationQuery="SELECT 1 FROM DUAL"
+  />
+    eos
+    it {
+      should contain_concat__fragment('/opt/apache-tomcat/test-context-resource-jdbc/MainDb').with({
+        :target => '/opt/apache-tomcat/test/conf/context.xml',
+        :content => expected.rstrip.gsub(/  /, "\t")
+      })
     }
   end
   describe 'failing tests' do
-    context 'bad valve_ensure' do
-      let :params do
-        {
-          :resource_ensure => 'foo'
-        }
-      end
-      it do
-        expect {
-          is_expected.to compile
-        }.to raise_error(Puppet::Error, /does not match/)
-      end
-    end
     context 'bad additional_attributes' do
       let :params do
         {
@@ -86,19 +61,6 @@ describe 'tomcat::config::context::resource', :type => :define do
         expect {
           is_expected.to compile
         }.to raise_error(Puppet::Error, /not a Hash/)
-      end
-    end
-    context 'old augeas' do
-      let :facts do
-        {
-          :osfamily      => 'Debian',
-          :augeasversion => '0.10.0'
-        }
-      end
-      it do
-        expect {
-          is_expected.to compile
-        }.to raise_error(Puppet::Error, /configurations require Augeas/)
       end
     end
   end
