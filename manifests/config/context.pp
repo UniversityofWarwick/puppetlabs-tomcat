@@ -20,7 +20,7 @@ define tomcat::config::context(
     order   => '9999',
   }
 
-  concat { $filename : 
+  concat { $filename :
     ensure => present,
     backup => false,
   }
