@@ -23,6 +23,7 @@ define tomcat::config::context(
   concat { $filename : 
     ensure => present,
     backup => false,
+    order  => numeric,
   }
 
 }
