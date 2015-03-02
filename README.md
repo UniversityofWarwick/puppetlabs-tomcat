@@ -1,3 +1,4 @@
+![Travis](https://travis-ci.org/UniversityofWarwick/puppetlabs-tomcat.svg)
 #tomcat
 
 ####Table of Contents
