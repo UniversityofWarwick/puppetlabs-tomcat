@@ -1,5 +1,6 @@
+
 	<Resource name="<%= @real_name %>"
 	<%- @additional_attributes.each do |name, value| -%>
-		<%= name %>="<%= value.gsub('"','&quot;') %>"
+		<%= name %>="<%= value.to_s.gsub('"','&quot;') %>"
 	<%- end -%>
 	/>
