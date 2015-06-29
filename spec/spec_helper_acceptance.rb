@@ -1,6 +1,8 @@
 require 'beaker-rspec/spec_helper'
 require 'beaker-rspec/helpers/serverspec'
+require 'beaker/puppet_install_helper'
 
+run_puppet_install_helper
 
 if ENV['BUILD_ID'] # We're in our CI system and use internal resources
   ARTIFACT_HOST = ENV['TOMCAT_ARTIFACT_HOST'] || 'http://int-resources.corp.puppetlabs.net/QA_resources/tomcat'
@@ -27,7 +29,7 @@ else # We're outside the CI system and use default locations
   TOMCAT6_RECENT_VERSION = ENV['TOMCAT6_RECENT_VERSION'] || latest6
   TOMCAT6_RECENT_SOURCE = "http://mirror.symnds.com/software/Apache/tomcat/tomcat-6/v#{TOMCAT6_RECENT_VERSION}/bin/apache-tomcat-#{TOMCAT6_RECENT_VERSION}.tar.gz"
   TOMCAT7_RECENT_VERSION = ENV['TOMCAT7_RECENT_VERSION'] || latest7
-  TOMCAT7_RECENT_SOURCE = "http://www.dsgnwrld.com/am/tomcat/tomcat-7/v#{TOMCAT7_RECENT_VERSION}/bin/apache-tomcat-#{TOMCAT7_RECENT_VERSION}.tar.gz"
+  TOMCAT7_RECENT_SOURCE = "http://mirror.symnds.com/software/Apache/tomcat/tomcat-7/v#{TOMCAT7_RECENT_VERSION}/bin/apache-tomcat-#{TOMCAT7_RECENT_VERSION}.tar.gz"
   TOMCAT8_RECENT_VERSION = ENV['TOMCAT8_RECENT_VERSION'] || latest8
   TOMCAT8_RECENT_SOURCE = "http://mirror.nexcess.net/apache/tomcat/tomcat-8/v#{TOMCAT8_RECENT_VERSION}/bin/apache-tomcat-#{TOMCAT8_RECENT_VERSION}.tar.gz"
   TOMCAT_LEGACY_VERSION = ENV['TOMCAT_LEGACY_VERSION'] || '6.0.39'
@@ -35,18 +37,6 @@ else # We're outside the CI system and use default locations
   SAMPLE_WAR = 'https://tomcat.apache.org/tomcat-8.0-doc/appdev/sample/sample.war'
 end
 
-
-unless ENV['RS_PROVISION'] == 'no'
-  # This will install the latest available package on el and deb based
-  # systems fail on windows and osx, and install via gem on other *nixes
-  foss_opts = { :default_action => 'gem_install' }
-
-  if default.is_pe?; then install_pe; else install_puppet( foss_opts ); end
-
-  hosts.each do |host|
-      on host, "mkdir -p #{host['distmoduledir']}"
-  end
-end
 
 UNSUPPORTED_PLATFORMS = ['windows','Solaris','Darwin']
 

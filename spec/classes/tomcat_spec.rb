@@ -68,7 +68,7 @@ describe 'tomcat', :type => :class do
     end
     it do
       expect {
-        is_expected.to compile
+        catalogue
       }.to raise_error(Puppet::Error, /is not a boolean/)
     end
   end
@@ -81,7 +81,7 @@ describe 'tomcat', :type => :class do
     end
     it do
       expect {
-       is_expected.to compile
+       catalogue
       }.to raise_error(Puppet::Error, /Unsupported osfamily/)
     end
   end
@@ -101,7 +101,7 @@ describe 'tomcat', :type => :class do
     end
     it do
       expect {
-       is_expected.to compile
+       catalogue
       }.to raise_error(Puppet::Error, /Unsupported osfamily/)
     end
   end
