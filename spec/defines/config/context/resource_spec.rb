@@ -1,68 +1,71 @@
 require 'spec_helper'
 
-describe 'tomcat::config::context::resource', :type => :define do
+describe 'tomcat::config::context::resource', type: :define do
   let :pre_condition do
-    'class { "tomcat": }'
+    'class {"tomcat": }'
   end
   let :facts do
     {
-      :osfamily => 'Debian',
-      :augeasversion => '1.0.0',
-      :concat_basedir => '/tmp/noexist'
+      osfamily: 'Debian',
+      augeasversion: '1.0.0',
     }
   end
   let :title do
-    'jdbc/MainDb'
+    'jdbc'
   end
-  context 'default' do
-    it {
-      should contain_concat__fragment('/opt/apache-tomcat-context-resource-jdbc/MainDb').with({
-        :target => '/opt/apache-tomcat/conf/context.xml'
-      })
-    }
-  end
-  context 'set all the things' do
+
+  context 'Add Resource' do
     let :params do
       {
-        :catalina_base         => '/opt/apache-tomcat/test',
-        :additional_attributes => {
-          'driverClass'     => 'oracle.jdbc.OracleDriver',
-          'username'        => 'maindbtest',
-          'password'        => 'secret',
-          'url'             => 'jdbc:oracle:thin:dbhost:1666:sid',
-          'validationQuery' => 'SELECT 1 FROM DUAL',
-        }
+        catalina_base: '/opt/apache-tomcat/test',
+        resource_type: 'net.sourceforge.jtds.jdbcx.JtdsDataSource',
+        additional_attributes: {
+          'auth'            => 'Container',
+          'closeMethod'     => 'closeMethod',
+          'validationQuery' => 'getdate()',
+          'description'     => 'description',
+          'scope'           => 'Shareable',
+          'singleton'       => 'true',
+        },
+        attributes_to_remove: [
+          'foobar',
+        ],
       }
     end
-    expected = <<-eos
 
-  <Resource name="jdbc/MainDb"
-    driverClass="oracle.jdbc.OracleDriver"
-    username="maindbtest"
-    password="secret"
-    url="jdbc:oracle:thin:dbhost:1666:sid"
-    validationQuery="SELECT 1 FROM DUAL"
-  />
-    eos
+    changes = [
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/name jdbc',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/type net.sourceforge.jtds.jdbcx.JtdsDataSource',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/auth \'Container\'',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/closeMethod \'closeMethod\'',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/validationQuery \'getdate()\'',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/description \'description\'',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/scope \'Shareable\'',
+      'set Context/Resource[#attribute/name=\'jdbc\']/#attribute/singleton \'true\'',
+      'rm Context/Resource[#attribute/name=\'jdbc\']/#attribute/foobar',
+    ]
     it {
-      should contain_concat__fragment('/opt/apache-tomcat/test-context-resource-jdbc/MainDb').with({
-        :target => '/opt/apache-tomcat/test/conf/context.xml',
-        :content => expected.gsub(/  /, "\t")
-      })
+      is_expected.to contain_augeas('context-/opt/apache-tomcat/test-resource-jdbc').with(
+        'lens' => 'Xml.lns',
+        'incl' => '/opt/apache-tomcat/test/conf/context.xml',
+        'changes' => changes,
+      )
     }
   end
-  describe 'failing tests' do
-    context 'bad additional_attributes' do
-      let :params do
-        {
-          :additional_attributes => 'foo'
-        }
-      end
-      it do
-        expect {
-          is_expected.to compile
-        }.to raise_error(Puppet::Error, /not a Hash/)
-      end
+  context 'Remove Resource' do
+    let :params do
+      {
+        catalina_base: '/opt/apache-tomcat/test',
+        ensure: 'absent',
+      }
     end
+
+    it {
+      is_expected.to contain_augeas('context-/opt/apache-tomcat/test-resource-jdbc').with(
+        'lens' => 'Xml.lns',
+        'incl' => '/opt/apache-tomcat/test/conf/context.xml',
+        'changes' => ['rm Context/Resource[#attribute/name=\'jdbc\']'],
+      )
+    }
   end
 end

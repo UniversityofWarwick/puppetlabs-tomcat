@@ -1,28 +1,32 @@
+# Definition: tomcat::config::context
+#
+# Configure attributes for the Context element in $CATALINA_BASE/conf/context.xml
+#
+# Parameters
+# @param catalina_base is the base directory for the Tomcat installation.
 
-# Defines a context.xml under conf/.
-# The content of the file is partly determined
-# by other defines such as `tomcat::config::context::resource`.
-define tomcat::config::context(
-  $catalina_base = $::tomcat::catalina_home,
-  ) {
 
-  $filename = "${catalina_base}/conf/context.xml"
 
-  concat::fragment { "${catalina_base}-context-header" :
-    target  => $filename,
-    content => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Context>",
-    order   => '0000',
+define tomcat::config::context (
+  $catalina_base = undef,
+) {
+  include ::tomcat
+  $_catalina_base = pick($catalina_base, $::tomcat::catalina_home)
+  tag(sha1($_catalina_base))
+
+  if versioncmp($::augeasversion, '1.0.0') < 0 {
+    fail('Server configurations require Augeas >= 1.0.0')
   }
 
-  concat::fragment { "${catalina_base}-context-footer" :
-    target  => $filename,
-    content => '</Context>',
-    order   => '9999',
-  }
+  $_watched_resource = 'set Context/WatchedResource/#text "WEB-INF/web.xml"'
 
-  concat { $filename :
-    ensure => present,
-    backup => false,
-  }
+  $changes = delete_undef_values([$_watched_resource])
 
+  if ! empty($changes) {
+    augeas { "context-${_catalina_base}":
+      lens    => 'Xml.lns',
+      incl    => "${_catalina_base}/conf/context.xml",
+      changes => $changes,
+    }
+  }
 }
