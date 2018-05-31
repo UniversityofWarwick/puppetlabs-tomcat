@@ -37,6 +37,7 @@ define tomcat::setenv::entry (
 
   if ! defined(Concat[$_config_file]) {
     concat { $_config_file:
+      ensure         => $ensure,
       owner          => $::tomcat::user,
       group          => $::tomcat::group,
       ensure_newline => true,
@@ -44,7 +45,6 @@ define tomcat::setenv::entry (
   }
 
   concat::fragment { "setenv-${name}":
-    ensure  => $ensure,
     target  => $_config_file,
     content => inline_template('export <%= @param %>=<%= @_quote_char %><%= Array(@value).join(" ") %><%= @_quote_char %>'),
     order   => $order,
